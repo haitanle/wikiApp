@@ -2,7 +2,7 @@ import webapp2
 import jinja2
 import os 
 
-
+from google.appengine.ext import db
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -19,15 +19,25 @@ class Handler(webapp2.RequestHandler):
 	def render(self, template, **kwargs):
 		self.write(self.render_str(template, **kwargs))
 
+class Vote(db.Model):
+	question = db.StringProperty(required = True)
+	yes = db.IntegerProperty()
+	no = db.IntegerProperty()
+	created = db.DateTimeProperty(required = True)
 
+class NewPost(Handler):
+	def get(self):
+		self.render("newpost.html")
+
+class Signup(Handler):
+	def get(self):
+		self.render(form)
 
 class MainPage(Handler):
 	def get(self):
 		self.render("front.html")
 
-class Signup(Handler):
-	def get(self):
-		self.render(form)
+
 
 class Login(Handler):
 	pass
@@ -45,6 +55,7 @@ class WikiPage(Handler):
 PAGE_RE = r'(/(?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([
 	('/', MainPage),
+	('/newpost', NewPost),
 	('/signup', Signup),
 	('/login', Login),
 	('/logout', Logout),
