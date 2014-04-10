@@ -1,6 +1,7 @@
 import webapp2
 import jinja2
 import os 
+import logging 
 
 from google.appengine.ext import db
 
@@ -23,11 +24,40 @@ class Vote(db.Model):
 	question = db.StringProperty(required = True)
 	yes = db.IntegerProperty()
 	no = db.IntegerProperty()
-	created = db.DateTimeProperty(required = True)
+	created = db.DateTimeProperty(auto_now_add = True)
+
 
 class NewPost(Handler):
 	def get(self):
 		self.render("newpost.html")
+
+	def post(self): 
+		question = self.request.get("question")
+		questionStr = question.split()
+		pLString = "" + questionStr[1] + questionStr[2] + questionStr[4]
+
+		if (question):
+			v = Vote(question=question, key_name = pLString)
+			v.put()
+			self.redirect("/%s" %pLString)
+
+
+class DiscussPage(Handler):
+
+	def get(self, pLString):
+		pLString = pLString[1:]
+		key = db.Key.from_path('Vote', pLString)
+		question = db.get(key)
+
+		if not question:
+			self.write("Retrieval Error")
+			return 
+
+		self.write(question.question)
+
+
+			
+
 
 class Signup(Handler):
 	def get(self):
@@ -60,5 +90,6 @@ app = webapp2.WSGIApplication([
 	('/login', Login),
 	('/logout', Logout),
 	('/_edit' + PAGE_RE, EditPage),
-	(PAGE_RE, WikiPage)
+	(PAGE_RE, DiscussPage)
 ], debug=True)
+
