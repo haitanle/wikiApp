@@ -22,8 +22,9 @@ class Handler(webapp2.RequestHandler):
 
 class Vote(db.Model):
 	question = db.StringProperty(required = True)
-	yes = db.IntegerProperty()
-	no = db.IntegerProperty()
+	yes = db.IntegerProperty(default=0)
+	no = db.IntegerProperty(default=0)
+	discussion = db.StringListProperty()
 	created = db.DateTimeProperty(auto_now_add = True)
 
 
@@ -34,12 +35,19 @@ class NewPost(Handler):
 	def post(self): 
 		question = self.request.get("question")
 		questionStr = question.split()
-		pLString = "" + questionStr[1] + questionStr[2] + questionStr[4]
 
-		if (question):
-			v = Vote(question=question, key_name = pLString)
-			v.put()
-			self.redirect("/%s" %pLString)
+		if len(questionStr) < 5: 
+			error = "You did not define a question. Please try again"
+			self.render("newpost.html", error = error)
+		else:
+			pLString = "" + questionStr[1] + questionStr[2] + questionStr[4]
+			
+			if (question):
+				v = Vote(question=question, key_name = pLString)
+				v.discussion.append("test my new post")
+				v.discussion.append("another test")
+				v.put()
+				self.redirect("/%s" %pLString)
 
 
 class DiscussPage(Handler):
@@ -53,7 +61,7 @@ class DiscussPage(Handler):
 			self.write("Retrieval Error")
 			return 
 
-		self.write(question.question)
+		self.render("discussPage.html", question = question)
 
 
 			
