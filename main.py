@@ -44,8 +44,8 @@ class NewPost(Handler):
 			
 			if (question):
 				v = Vote(question=question, key_name = pLString)
-				v.discussion.append("test my new post")
-				v.discussion.append("another test")
+				#v.discussion.append("test my new post")
+				#v.discussion.append("another test")
 				v.put()
 				self.redirect("/%s" %pLString)
 
@@ -62,6 +62,18 @@ class DiscussPage(Handler):
 			return 
 
 		self.render("discussPage.html", question = question)
+
+	def post(self, key):
+		comment = self.request.get("comment")
+		pLString = key[1:]
+		key = db.Key.from_path('Vote', pLString)
+		question = db.get(key)
+
+		question.discussion.append(comment)
+		question.put()
+
+		self.redirect("/%s" %pLString)
+
 
 
 			
