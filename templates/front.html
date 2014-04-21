@@ -4,9 +4,25 @@
 <body> 
 	<p> "Welcome to AskCharlotte99.com"</p> 
 
-	<form type = "post">
-		<input type="radio" name="vote" value="yes">Yes<br>
-		<input type="radio" name="vote" value="no">No
+	<p>
+	<a href="/newpost">Click here</a> to create a new poll. 
+	</p>
+
+	{% for poll in polls %}	
+	<div>
+		<div>{{poll.question}}</div>
+		<form method= "post">
+		<div>Yes: {{poll.yes}}  No: {{poll.no}}</div>
+		<div>{{poll.created}}</div>
+		<input type="radio" name="vote" value="yes">Yes 
+			<input type="radio" name="vote" value="no">No
+		<input type = "hidden" name ="key" value ={{poll.key()}}>
+		<input type = "submit" value = "vote"> 
+		</form>
+		<br>
+		<br>
+	</div>
+	{% endfor %}
 	</form> 
 </body>
 

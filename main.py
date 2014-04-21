@@ -2,6 +2,7 @@ import webapp2
 import jinja2
 import os 
 import logging 
+import time
 
 from google.appengine.ext import db
 
@@ -20,12 +21,17 @@ class Handler(webapp2.RequestHandler):
 	def render(self, template, **kwargs):
 		self.write(self.render_str(template, **kwargs))
 
+
 class Vote(db.Model):
 	question = db.StringProperty(required = True)
 	yes = db.IntegerProperty(default=0)
 	no = db.IntegerProperty(default=0)
 	discussion = db.StringListProperty()
 	created = db.DateTimeProperty(auto_now_add = True)
+
+
+
+
 
 
 class NewPost(Handler):
@@ -44,11 +50,32 @@ class NewPost(Handler):
 			
 			if (question):
 				v = Vote(question=question, key_name = pLString)
-				#v.discussion.append("test my new post")
-				#v.discussion.append("another test")
 				v.put()
 				self.redirect("/%s" %pLString)
 
+
+class MainPage(Handler):
+	def get(self):
+		polls = Vote.all().order('-created').run(limit=10)
+		self.render("front.html", polls= polls)
+
+	def post(self): 
+		vote = self.request.get("vote")
+		pollKey = self.request.get("key")
+		question = db.get(pollKey)
+
+		if not question: 
+			self.write("Not able to update this poll")
+			return 
+
+		if vote == 'yes':
+			question.yes+=1
+		else:
+			question.no+=1
+
+		question.put()
+		time.sleep(1)
+		self.redirect('/')
 
 class DiscussPage(Handler):
 
@@ -71,7 +98,6 @@ class DiscussPage(Handler):
 
 		question.discussion.append(comment)
 		question.put()
-
 		self.redirect("/%s" %pLString)
 
 
@@ -83,9 +109,7 @@ class Signup(Handler):
 	def get(self):
 		self.render(form)
 
-class MainPage(Handler):
-	def get(self):
-		self.render("front.html")
+
 
 
 
