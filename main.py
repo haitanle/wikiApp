@@ -27,6 +27,7 @@ class Vote(db.Model):
 	yes = db.IntegerProperty(default=0)
 	no = db.IntegerProperty(default=0)
 	discussion = db.StringListProperty()
+	link = db.StringProperty()
 	created = db.DateTimeProperty(auto_now_add = True)
 
 
@@ -49,7 +50,7 @@ class NewPost(Handler):
 			pLString = "" + questionStr[1] + questionStr[2] + questionStr[4]
 			
 			if (question):
-				v = Vote(question=question, key_name = pLString)
+				v = Vote(question=question, key_name = pLString, link = "/"+pLString)
 				v.put()
 				self.redirect("/%s" %pLString)
 

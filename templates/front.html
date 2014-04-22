@@ -16,6 +16,7 @@
 		<div>{{poll.created}}</div>
 		<input type="radio" name="vote" value="yes">Yes 
 			<input type="radio" name="vote" value="no">No
+		<div> See discussion link <a href="{{poll.link}}">{{poll.link}}</a></div>
 		<input type = "hidden" name ="key" value ={{poll.key()}}>
 		<input type = "submit" value = "vote"> 
 		</form>
