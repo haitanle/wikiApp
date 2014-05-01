@@ -19,15 +19,24 @@ class Handler(webapp2.RequestHandler):
 	def write(self, *a , **kwargs):
 		self.response.out.write(*a, **kwargs)  
 
-	def render_str(self, template, **kwargs):
-		template = env.get_template(template)   
-		return template.render(**kwargs)  
+	def render_str(self, template, **params):
+		template = env.get_template(template)
+		params['user'] = self.user
+		return template.render(**params)
  
 	def render(self, template, **kwargs):
 		self.write(self.render_str(template, **kwargs))
 
+	def initialize(self, *a, **kw): #override's GAE initialize to also check for userID
+		webapp2.RequestHandler.initialize(self, *a, **kw)  #create Handler object for request, response
+		uid = self.read_secure_cookie('user_id') #get user's ID from cookie
+		self.user = uid and User.get_by_id(int(uid)) #set ID to self.user
+
 	def login(self, user):
 		self.set_secure_cookie('user_id', str(user.key().id()))  #log the user by setting cookie to ID
+
+	def logout(self):
+		self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
 	def set_secure_cookie(self, name, val):
 		val = make_secure_val(val) #hash the value
@@ -241,9 +250,16 @@ class Login(Handler):
 
 class NewPost(Handler):
 	def get(self):
-		self.render("newpost.html")
+		if self.user:
+			self.render("newpost.html")
+		else:
+			self.redirect("/login")
 
 	def post(self): 
+
+		if not self.user:
+			self.redirect('/')
+
 		question = self.request.get("question")
 		questionStr = question.replace(" ","")[:-1]
 
@@ -264,22 +280,26 @@ class MainPage(Handler):
 		self.render("front.html", polls= polls)
 
 	def post(self): 
-		vote = self.request.get("vote")
-		pollKey = self.request.get("key")
-		question = db.get(pollKey)
 
-		if not question: 
-			self.write("Not able to update this poll")
-			return 
+		if self.user:
+			vote = self.request.get("vote")
+			pollKey = self.request.get("key")
+			question = db.get(pollKey)
 
-		if vote == 'yes':
-			question.yes+=1
+			if not question: 
+				self.write("Not able to update this poll")
+				return 
+
+			if vote == 'yes':
+				question.yes+=1
+			else:
+				question.no+=1
+
+			question.put()
+			time.sleep(1)
+			self.redirect('/')
 		else:
-			question.no+=1
-
-		question.put()
-		time.sleep(1)
-		self.redirect('/')
+			self.redirect('/signup')
 
 class DiscussPage(Handler):
 
@@ -289,7 +309,7 @@ class DiscussPage(Handler):
 		question = db.get(key)
 
 		if not question:
-			self.write("Retrieval Error")
+			self.write("This poll does not exist.")
 			return 
 
 		self.render("discussPage.html", question = question)
