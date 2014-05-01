@@ -1,0 +1,31 @@
+<html>
+
+<form method = "post">
+	<b>Signup</b>
+	<br>
+
+	<label> Username
+		<input type = "text" name= "username" value="{{username}}">
+	</label>
+	<div style="color:red">{{username_error}} </div> 
+
+	<label> Password
+		<input type = "password" name= "password" value="">   <!-- no return input if password do not match -->
+	</label>
+	<div style="color:red">{{password_error}} </div> 
+
+	<label> Re-enter Password
+		<input type = "password" name= "verify" value="">
+	</label>
+	<div style="color:red">{{password_verify_error}} </div> 
+
+	<label> Email (optional)
+		<input type = "text" name= "email" value="{{email}}">
+	</label>
+	<div style="color:red">{{email_error}} </div>   <!-- string substition using dictionary -->
+	
+	<input type= "submit">
+	
+	
+</form>
+</html> 
